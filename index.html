@@ -1,0 +1,636 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no">
+<meta name="theme-color" content="#79b9e9">
+<title>Mimo Us ♡ | Adventure World</title>
+<style>
+:root{--sky:#91b8c7;--grass:#65a94c;--dirt:#8a5938;--ink:#263326;--cream:#f4efd9;--gold:#c3d9ce}
+*{box-sizing:border-box}
+body{margin:0;background:#263326;color:#fff;font-family:ui-monospace,Consolas,monospace;image-rendering:pixelated}
+button{font:inherit;cursor:pointer;touch-action:manipulation}
+#intro{min-height:100svh;display:grid;place-items:center;text-align:center;padding:24px;filter:grayscale(1);transition:filter 1.3s ease;background:linear-gradient(#0005,#0008),linear-gradient(#9ca8a2 0 58%,#69736d 58% 72%,#4a514c 72%)}
+#intro.color{filter:grayscale(0)}
+.earth{font-size:clamp(90px,22vw,155px);line-height:1.1;filter:drop-shadow(8px 9px 0 #1118)}
+h1{font-size:clamp(32px,7vw,52px);margin:12px 0;text-shadow:4px 4px #263326}
+.sub{font-size:11px;letter-spacing:2px;color:#f0f2e7}
+.pixel-btn{border:4px solid #243222;background:#83b95d;color:#172514;padding:13px 22px;box-shadow:5px 5px 0 #101a13;font-weight:900;letter-spacing:1px;margin:8px}
+#game{display:none;max-width:1000px;margin:auto;padding:12px}
+.head{text-align:center;padding:8px}
+.head h1{margin:0;color:#fff;text-shadow:4px 4px #365b35}
+.head p{font-size:10px;letter-spacing:1px;color:#d9edc9}
+.stats{display:flex;justify-content:center;gap:12px;flex-wrap:wrap;font-size:11px;color:#f8f1d6;margin:8px}
+#screen{position:relative;border:6px solid #536f43;box-shadow:7px 7px #142218;background:#8bc9ef;overflow:hidden}
+canvas{display:block;width:100%;height:auto;image-rendering:pixelated;touch-action:none}
+.hint{text-align:center;font-size:11px;line-height:1.6;color:#f7f0d6;margin:12px 0}
+.controls{display:flex;align-items:center;justify-content:center;gap:18px;margin:12px auto;max-width:500px}
+.pad{display:grid;grid-template-columns:48px 48px 48px;grid-template-rows:42px 42px 42px;gap:4px}
+.pad button,.action{border:3px solid #273a28;background:#8ab95e;color:#172514;font-weight:bold;box-shadow:3px 3px #1118}
+.pad button{font-size:18px}
+.pad .up{grid-column:2}.pad .left{grid-column:1;grid-row:2}.pad .down{grid-column:2;grid-row:2}.pad .right{grid-column:3;grid-row:2}
+.action{padding:12px 14px;min-width:120px}
+.action:active,.pad button:active{transform:translate(2px,2px);box-shadow:1px 1px #1118}
+.panel{background:#e8e3c9;border:5px solid #536f43;box-shadow:6px 6px #142218;padding:14px;margin:18px 0;color:#263326}
+.panel h2{margin:0 0 8px;color:#496d3d;font-size:17px}
+.panel p{font-size:12px;line-height:1.6}
+.progress{font-weight:bold;color:#496d3d;text-align:center}
+#modal{display:none;position:fixed;inset:0;background:#07110ddd;z-index:10;place-items:center;padding:15px}
+.letter{background:#eee8d2;color:#263126;border:7px solid #557447;box-shadow:8px 8px #070d08;max-width:540px;width:100%;padding:20px;max-height:85svh;overflow:auto}
+.letter h3{color:#496b42;font-size:20px;margin:8px 0}
+.letter p{font-size:13px;line-height:1.7}
+.translation{border-top:2px dashed #8a987d;margin-top:12px;padding-top:10px;color:#475443}
+.close{background:#344c35;color:white;border:3px solid #172519;padding:10px 16px;margin-top:8px}
+#pickArea{display:flex;justify-content:center;gap:10px;flex-wrap:wrap;margin-top:12px}
+.ballPick{font-size:28px;border:3px solid #536f43;background:#c5dba8;padding:10px;min-width:55px;box-shadow:3px 3px #82976d}
+.ballPick:disabled{opacity:.35;filter:grayscale(1)}
+/* Arcade capsule machine */
+.arcadeWrap{max-width:430px;margin:18px auto 10px;text-align:center}
+.machine{position:relative;margin:auto;width:min(100%,340px);padding:15px 18px 0;background:#d9b66d;border:7px solid #68472d;box-shadow:inset 0 0 0 4px #f4dc9a,6px 7px #243222;border-radius:18px 18px 8px 8px}
+.machineTop{font-weight:900;color:#49331e;font-size:13px;letter-spacing:2px;padding:3px 0 10px;text-shadow:1px 1px #fff2c6}
+.globe{height:225px;position:relative;overflow:hidden;border:8px solid #8a6848;border-radius:48% 48% 18% 18%;background:radial-gradient(circle at 35% 25%,#ffffffb8,#b9e9ef88 35%,#4f849266 75%),#a7dce4;box-shadow:inset 0 0 18px #31515b88}
+.globe:before{content:'';position:absolute;inset:8px;border:2px solid #ffffff88;border-radius:48% 48% 18% 18%;pointer-events:none}
+.ballCloud{position:absolute;inset:8px;display:grid;place-items:center}
+.machineBall{position:absolute;width:43px;height:43px;border:3px solid #fff9;border-radius:50%;box-shadow:inset -5px -6px 0 #0002,2px 4px 4px #172b3155;background:radial-gradient(circle at 30% 25%,#fff 0 8%,#ff8aa9 10% 48%,#b92d5b 75%);font-size:22px;display:grid;place-items:center}
+.machineBall:nth-child(2){background:radial-gradient(circle at 30% 25%,#fff 0 8%,#a5e4ff 10% 48%,#3286bf 75%)}
+.machineBall:nth-child(3){background:radial-gradient(circle at 30% 25%,#fff 0 8%,#ffe78b 10% 48%,#d49b28 75%)}
+.machineBall:nth-child(4){background:radial-gradient(circle at 30% 25%,#fff 0 8%,#c9a6ff 10% 48%,#8050b8 75%)}
+.machineBall:nth-child(5){background:radial-gradient(circle at 30% 25%,#fff 0 8%,#a9e59b 10% 48%,#4d9b4c 75%)}
+.machine.spinning .machineBall{animation:swirl .42s linear infinite alternate}
+.machine.spinning .machineBall:nth-child(even){animation-direction:alternate-reverse;animation-duration:.31s}
+@keyframes swirl{0%{transform:translate(-70px,-48px) rotate(0) scale(.85)}25%{transform:translate(65px,-42px) rotate(90deg) scale(1.12)}50%{transform:translate(72px,48px) rotate(180deg) scale(.9)}75%{transform:translate(-60px,55px) rotate(270deg) scale(1.08)}100%{transform:translate(0,-5px) rotate(360deg) scale(.95)}}
+.chute{height:45px;width:92px;margin:-2px auto 0;background:#68472d;border:5px solid #9a744b;border-top:0;border-radius:0 0 18px 18px;position:relative}
+.chute:after{content:'';position:absolute;left:24px;right:24px;bottom:5px;height:8px;background:#2b2018;border-radius:50%}
+.outputSlot{height:95px;display:grid;place-items:center;background:#b88b4e;border:5px solid #68472d;border-top:0;margin:0 -18px;border-radius:0 0 3px 3px;position:relative}
+.outputBall{width:60px;height:60px;border:4px solid #fff;border-radius:50%;font-size:29px;display:grid;place-items:center;background:radial-gradient(circle at 30% 22%,#fff 0 8%,#ff91b2 10% 48%,#bd3260 78%);box-shadow:0 5px 0 #68472d,0 7px 10px #0005;cursor:pointer;animation:dropBall .7s cubic-bezier(.2,.8,.3,1.2)}
+@keyframes dropBall{0%{transform:translateY(-65px) scale(.5);opacity:0}75%{transform:translateY(5px) scale(1.08);opacity:1}100%{transform:translateY(0) scale(1)}}
+.outputBall:active{transform:scale(.94)}
+.machine.spinning .outputSlot{opacity:.65}
+.arcadeHint{font-size:10px;color:#fff4d6;line-height:1.6;margin:10px auto}
+#pickArea{min-height:0}
+
+footer{text-align:center;font-size:10px;letter-spacing:2px;color:#f4f0dc;padding:16px}
+@media(min-width:650px){#game{padding:20px}.panel{padding:20px}}
+
+.gameCards{display:grid;grid-template-columns:1fr;gap:12px;margin-top:14px}
+.gameCard{display:flex;flex-direction:column;align-items:center;gap:7px;padding:18px 12px;min-height:145px;background:#b9d69a;color:#243624;border:4px solid #4b6e3d;box-shadow:4px 4px #81996a}
+.gameCard span{font-size:36px}.gameCard strong{font-size:13px;letter-spacing:1px}.gameCard small{font-size:10px;line-height:1.5}
+.backBtn{border:3px solid #243222;background:#83b95d;color:#172514;padding:9px 12px;font-weight:bold;font-size:10px;margin-bottom:14px;box-shadow:3px 3px #101a13}
+.gamePage{margin-top:16px}
+@media(min-width:650px){.gameCards{grid-template-columns:repeat(3,1fr)}}
+
+/* Infinity finale for the Love Calculator */
+.infinityStage{display:none;margin:18px auto 8px;padding:18px 12px;text-align:center;background:linear-gradient(145deg,#172b3b,#293e55 55%,#493b67);border:5px solid #f2d477;box-shadow:0 0 0 4px #344b37,7px 8px #142218;color:#fff;position:relative;overflow:hidden}
+.infinityStage.show{display:block;animation:infinityReveal .8s ease both}
+.infinityKicker{font-size:10px;letter-spacing:3px;color:#ffe9a3;font-weight:900}
+.infinityWord{font-size:clamp(48px,13vw,82px);line-height:1.05;font-weight:1000;letter-spacing:2px;color:#fff2a8;text-shadow:4px 4px #b77b35,0 0 18px #fff3a6;margin:12px 0;overflow-wrap:anywhere}
+.infinitySymbol{font-size:clamp(60px,16vw,100px);line-height:1;color:#a8edff;text-shadow:0 0 18px #8ce8ff,4px 4px #284c76}
+.infinityBond{font-size:clamp(17px,4.5vw,25px);line-height:1.45;font-weight:1000;color:#fff;text-shadow:2px 2px #18283a;margin:12px auto 5px;max-width:520px}
+.infinityBond em{font-style:normal;color:#ffe58b;text-decoration:underline;text-decoration-thickness:3px;text-underline-offset:5px}
+.infinityEquation{font-size:11px;line-height:1.8;color:#e6f5ff;overflow-wrap:anywhere;margin-top:12px}
+.infinityNote{font-size:9px;line-height:1.6;color:#d4e4ee;margin:8px auto 0;max-width:420px}
+@keyframes infinityReveal{0%{opacity:0;transform:scale(.82) translateY(12px)}70%{transform:scale(1.04)}100%{opacity:1;transform:scale(1)}}
+@media(prefers-reduced-motion:reduce){.infinityStage.show{animation:none}}
+
+
+/* Three-page secret ending */
+.secretUnlock{display:none;width:100%;margin-top:12px}
+.secretUnlock.show{display:block;animation:infinityReveal .7s ease both}
+.secretHero{padding:24px 14px;text-align:center;background:linear-gradient(#163d36dd,#214b37ee),repeating-linear-gradient(45deg,#356c43 0 18px,#2d603b 18px 36px);border:6px solid #8dbb69;box-shadow:7px 7px #142218;color:#fff;margin:16px 0}
+.secretHero .big{font-size:clamp(48px,14vw,82px);line-height:1.2}
+.secretHero h2{font-size:clamp(22px,6vw,34px);color:#f7df8b;text-shadow:3px 3px #263326;margin:8px 0}
+.secretHero p{font-size:12px;line-height:1.8;max-width:560px;margin:10px auto}
+.gardenScene{min-height:230px;display:grid;place-items:center;text-align:center;border:6px solid #536f43;box-shadow:6px 6px #142218;background:radial-gradient(circle at 50% 50%,#f8eaa0 0 3%,transparent 4%),radial-gradient(circle at 25% 35%,#f8eaa0 0 2%,transparent 3%),radial-gradient(circle at 75% 65%,#f8eaa0 0 2%,transparent 3%),linear-gradient(#75c8ed 0 48%,#6eaf50 48% 100%);position:relative;overflow:hidden}
+.gardenScene .gardenIcons{font-size:clamp(35px,9vw,58px);filter:drop-shadow(3px 4px #31532c);line-height:1.7}
+.gardenScene .gardenCaption{font-size:10px;letter-spacing:2px;font-weight:bold;color:#fff;text-shadow:2px 2px #28482a}
+.envelopeStage{display:grid;place-items:center;padding:24px 10px;background:linear-gradient(#a9d9ed,#d5e8c9 60%,#79a65d);border:6px solid #536f43;box-shadow:6px 6px #142218;margin:16px 0;min-height:270px}
+.envelope{position:relative;width:min(280px,78vw);height:175px;border:4px solid #8d633d;background:#f5e6bd;box-shadow:5px 6px #6d5136;cursor:pointer;transition:transform .35s}
+.envelope:before{content:"";position:absolute;inset:0;background:#e9d29c;clip-path:polygon(0 0,50% 55%,100% 0);border-bottom:3px solid #b48b55;transform-origin:top;transition:transform .65s;z-index:3}
+.envelope:after{content:"";position:absolute;inset:0;background:linear-gradient(135deg,transparent 49%,#c49a62 50% 51%,transparent 52%),linear-gradient(45deg,transparent 49%,#d1aa70 50% 51%,transparent 52%);z-index:2}
+.envelopeSeal{position:absolute;z-index:4;left:50%;top:48%;transform:translate(-50%,-50%);font-size:42px;color:#a83d56;text-shadow:2px 2px #fff}
+.envelopeTear{position:absolute;z-index:5;left:50%;top:-17px;transform:translateX(-50%);font-size:10px;font-weight:bold;letter-spacing:2px;color:#68472d;white-space:nowrap}
+.envelope.opened{transform:translateY(12px) rotate(-2deg)}
+.envelope.opened:before{transform:rotateX(180deg);z-index:1}
+.envelope.opened .envelopeSeal{opacity:0;transition:opacity .2s}
+.treasureLetter{display:none;max-width:560px;margin:0 auto 16px;background:#f5efd9;color:#293629;border:6px solid #a88751;box-shadow:6px 6px #142218;padding:20px;text-align:center}
+.treasureLetter.show{display:block;animation:infinityReveal .8s ease both}
+.treasureLetter h3{color:#6b5737;font-size:19px}
+.treasureLetter p{font-size:13px;line-height:1.8}
+.grandStage{position:relative;overflow:hidden;min-height:440px;padding:35px 12px 24px;text-align:center;background:linear-gradient(#182d49,#3e4774 58%,#76517d);border:6px solid #f3d77b;box-shadow:7px 8px #142218;margin:16px 0}
+.grandTitle{position:relative;z-index:2;color:#fff0a6;font-size:clamp(31px,8vw,55px);line-height:1.25;text-shadow:4px 4px #8b4b63,0 0 14px #ffe8a0;margin:32px 0 12px}
+.grandSub{position:relative;z-index:2;color:#fff;font-size:12px;line-height:1.9;letter-spacing:1px}
+.grandHeart{position:relative;z-index:2;font-size:clamp(55px,14vw,85px);margin:12px 0;filter:drop-shadow(0 0 12px #ff9ac4)}
+.loveBalloons{position:absolute;inset:0;overflow:hidden;pointer-events:none}
+.loveBalloon{position:absolute;bottom:-100px;font-size:clamp(32px,8vw,52px);animation:balloonFloat 8s linear infinite;filter:drop-shadow(2px 4px 2px #1115)}
+.loveBalloon:nth-child(1){left:5%;animation-delay:0s}
+.loveBalloon:nth-child(2){left:22%;animation-delay:2.1s;animation-duration:9s}
+.loveBalloon:nth-child(3){left:43%;animation-delay:1s;animation-duration:7.5s}
+.loveBalloon:nth-child(4){left:65%;animation-delay:3s;animation-duration:9.5s}
+.loveBalloon:nth-child(5){left:84%;animation-delay:1.7s;animation-duration:8.5s}
+@keyframes balloonFloat{0%{transform:translateY(0) rotate(-8deg);opacity:0}12%{opacity:1}85%{opacity:1}100%{transform:translateY(-560px) rotate(12deg);opacity:0}}
+@media(prefers-reduced-motion:reduce){.loveBalloon{animation:none;opacity:.8;bottom:8px}.secretUnlock.show,.treasureLetter.show{animation:none}}
+
+
+/* V11: balanced blue, green and grey Minecraft palette */
+:root{
+ --sky:#8fb8c8;--grass:#648b79;--dirt:#64737b;--ink:#26363b;
+ --cream:#dce4e2;--gold:#a9c4b6;
+ --v11-blue:#547f98;--v11-blue-light:#a9c7d2;
+ --v11-green:#648b79;--v11-green-light:#a9c3b4;
+ --v11-grey:#65747a;--v11-grey-light:#dce4e2;
+}
+body{background:#34434a;color:#edf2ef}
+#intro{background:linear-gradient(#0006,#0009),linear-gradient(#aebdc1 0 58%,#73858a 58% 72%,#46565d 72%)}
+.pixel-btn,.backBtn{background:#9bbcaf;color:#1d3035;border-color:#344b53;box-shadow:4px 4px #1b292e}
+.panel{background:#dce4e2;color:#293b40;border-color:#607c83;box-shadow:6px 6px #1b292e}
+.panel h2{color:#426d70}
+.head h1{color:#e1ece8;text-shadow:4px 4px #36545d}
+.head p,.hint{color:#d5e1df}
+.stats{color:#e0e9e6}
+#screen{border-color:#547c82;box-shadow:7px 7px #1b292e}
+.gameCard{background:#c5d5d0;color:#263b40;border-color:#587b7c;box-shadow:4px 4px #7f9696}
+.gameCard .gameGlyph{font-size:38px;color:#456f7c;text-shadow:2px 2px #dce8e4}
+.pad button,.action{background:#9dbbb2;color:#20343a;border-color:#425d64;box-shadow:3px 3px #17252a}
+.machine{background:#82979a;border-color:#455b62;box-shadow:inset 0 0 0 4px #c7d5d0,6px 7px #24343a}
+.machineTop{color:#263b40;text-shadow:1px 1px #e2ebe7}
+.globe{background:radial-gradient(circle at 35% 25%,#ffffffb8,#c1dfe2aa 35%,#628d9b88 75%),#a7c9cc;border-color:#58767d}
+.machineBall,.outputBall{background:radial-gradient(circle at 30% 25%,#fff 0 8%,#9ebfc2 10% 48%,#527b87 75%);border-color:#e4eeeb}
+.machineBall:nth-child(2){background:radial-gradient(circle at 30% 25%,#fff 0 8%,#a9cbb8 10% 48%,#527d68 75%)}
+.machineBall:nth-child(3){background:radial-gradient(circle at 30% 25%,#fff 0 8%,#c5d2d3 10% 48%,#748b91 75%)}
+.machineBall:nth-child(4){background:radial-gradient(circle at 30% 25%,#fff 0 8%,#9bb8cf 10% 48%,#4d718d 75%)}
+.machineBall:nth-child(5){background:radial-gradient(circle at 30% 25%,#fff 0 8%,#bdd0c4 10% 48%,#688a78 75%)}
+.chute{background:#536d75;border-color:#82999b}
+.outputSlot{background:#9cabad;border-color:#536d75}
+.arcadeHint{color:#dce9e6}
+#pickArea .ballPick{background:#c8d8d3;color:#263d43;border-color:#607e82}
+#modal .letter{border-color:#68868a}
+.close{background:#45636d;border-color:#253a41}
+.secretHero{background:linear-gradient(#244b55ee,#3f6960ee),repeating-linear-gradient(45deg,#6d9684 0 18px,#527968 18px 36px);border-color:#9bbdb0;box-shadow:7px 7px #1b292e}
+.gardenScene{background:radial-gradient(circle at 50% 50%,#dce7d9 0 3%,transparent 4%),radial-gradient(circle at 25% 35%,#dce7d9 0 2%,transparent 3%),radial-gradient(circle at 75% 65%,#dce7d9 0 2%,transparent 3%),linear-gradient(#91b8c7 0 48%,#648b79 48% 100%);border-color:#547c82;box-shadow:6px 6px #1b292e}
+.envelopeStage{background:linear-gradient(#a9c7d2,#dce4e2 60%,#729789);border-color:#547c82;box-shadow:6px 6px #1b292e}
+.envelope{background:#dce4e2;border-color:#607c83;box-shadow:5px 6px #3f555b}
+.envelope:before{background:#b9cfca;border-bottom-color:#607c83}
+.envelopeSeal{color:#527b87;text-shadow:2px 2px #fff}
+.treasureLetter{background:#e3e9e5;color:#293b40;border-color:#718c8b;box-shadow:6px 6px #1b292e}
+.treasureLetter h3{color:#426d70}
+.grandStage{background:linear-gradient(#263f52,#496878 58%,#536e68);border-color:#a9c4b6;box-shadow:7px 8px #1b292e}
+.grandTitle{color:#e0eee8;text-shadow:4px 4px #426777,0 0 14px #dce9e4}
+.grandHeart{color:#b8d3c7;text-shadow:0 0 18px #b7d4d4,4px 4px #284c76}
+.infinityStage{background:linear-gradient(145deg,#263c49,#3b5a69 55%,#536d68);border-color:#a9c4b6;box-shadow:0 0 0 4px #344b53,7px 8px #1b292e}
+.infinityWord{color:#e2eee8;text-shadow:4px 4px #557d80,0 0 18px #dce9e4}
+.infinitySymbol{color:#b6d8df;text-shadow:0 0 18px #8ccbd1,4px 4px #284c76}
+.infinityBond em{color:#c2d9ca}
+footer{color:#dce7e4}
+.pixel-globe{width:118px;height:118px;margin:0 auto 10px;display:grid;place-content:center;grid-template-columns:repeat(3,28px);grid-template-rows:repeat(3,28px);gap:3px;filter:drop-shadow(7px 8px 0 #1118);transform:rotate(-8deg)}
+.pixel-globe span{display:grid;place-items:center;background:#668d91;color:#dce8e4;font-size:22px;line-height:1}
+.pixel-globe span:nth-child(2){background:#8eaf9b;color:#263b40}
+.earth{display:none}
+.roadmap{margin:14px 0;padding:14px;background:#cbd9d6;border:3px solid #718b8d;color:#293b40}
+.roadmap h3{font-size:12px;letter-spacing:2px;margin:0 0 10px;color:#426d70}
+.roadmap ol{margin:0;padding-left:24px;display:grid;gap:9px}
+.roadmap li{padding-left:4px;font-size:11px;line-height:1.55}
+.roadmap li strong{display:block;color:#355e68}
+.roadmap li span{display:block;color:#43585c}
+.roadmapNote{font-size:10px!important;color:#53696c;margin-bottom:0}
+.pageNav{display:flex;justify-content:space-between;gap:8px;flex-wrap:wrap}
+.homeBtn{background:#547b86;color:#eef3f0}
+.homeEnd{text-align:center;margin-top:18px}
+.pixelGardenGlyph{color:#d6e9df;text-shadow:4px 4px #345c59}
+.loveBalloon{width:36px;height:44px;bottom:-100px;border-radius:50% 50% 45% 45%;display:grid;place-items:center;background:linear-gradient(135deg,#c4d9d1,#5c8b91);color:#edf5f0;font-size:20px;border:2px solid #dce9e4;box-shadow:2px 4px 2px #1115}
+.loveBalloon:after{content:"";position:absolute;top:41px;left:15px;width:1px;height:45px;background:#dce9e4}
+.loveBalloon:nth-child(2){background:linear-gradient(135deg,#b7d2c1,#5e8a76)}
+.loveBalloon:nth-child(3){background:linear-gradient(135deg,#c8d6d9,#628393)}
+.loveBalloon:nth-child(4){background:linear-gradient(135deg,#a9c7d2,#527b91)}
+.loveBalloon:nth-child(5){background:linear-gradient(135deg,#d0ddd7,#718f83)}
+#aicuDock{display:none;position:fixed;right:12px;bottom:12px;z-index:30;font-family:ui-monospace,Consolas,monospace}
+#aicuToggle{display:flex;align-items:center;gap:8px;border:3px solid #263d43;background:#9dbbb2;color:#20343a;padding:9px 12px;box-shadow:4px 4px #17252a;font-weight:900;font-size:11px}
+.aicuMark{width:24px;height:24px;display:grid;place-items:center;background:#456d7b;color:#fff;border:2px solid #dce8e4}
+#aicuPanel{width:min(330px,calc(100vw - 24px));height:360px;max-height:65svh;background:#dce4e2;border:4px solid #547c82;box-shadow:6px 6px #1b292e;margin-bottom:8px;color:#263b40;display:flex;flex-direction:column}
+#aicuPanel[hidden]{display:none}
+.aicuHead{display:flex;align-items:center;gap:8px;padding:9px;background:#456774;color:#eff5f1}
+.aicuHead strong{font-size:15px;letter-spacing:2px}
+.aicuHead span{font-size:9px;letter-spacing:1px;flex:1}
+.aicuHead button{background:transparent;color:#fff;border:0;font-size:22px}
+.aicuChat{padding:10px;overflow:auto;flex:1;font-size:11px;line-height:1.55}
+.aicuChat p{padding:8px;margin:0 0 8px;background:#c6d7d1;border-left:3px solid #5e8584}
+.aicuChat .aicuUser{background:#c2d4df;border-left-color:#547f98}
+.aicuForm{display:flex;gap:5px;padding:8px;border-top:2px solid #9eb6b4}
+.aicuForm input{min-width:0;flex:1;padding:9px;border:2px solid #789496;background:#f0f4f1;color:#263b40;font:inherit;font-size:10px}
+.aicuForm button{border:2px solid #344b53;background:#789b91;color:#172d32;padding:7px;font-size:10px;font-weight:bold}
+.aicuFoot{text-align:center;font-size:8px;letter-spacing:1px;color:#5b7074;margin:0;padding:5px}
+@media(max-width:420px){#aicuDock{right:8px;bottom:8px}.aicuChat{font-size:10px}}
+
+.socialEnd{position:relative;z-index:3;display:flex;flex-direction:column;align-items:center;gap:9px;margin:18px auto 20px;padding:14px 12px;max-width:360px;background:rgba(15,34,48,.48);border:2px solid #a9c4b6;box-shadow:4px 4px #1b292e}
+.socialTitle{color:#e0eee8;font-weight:bold;letter-spacing:3px;font-size:12px;margin-bottom:3px}
+.socialLink{display:block;width:min(100%,290px);padding:10px 8px;color:#eaf4ef;text-decoration:none;font-weight:bold;font-size:12px;letter-spacing:.5px;background:rgba(169,196,182,.14);border:1px solid #a9c4b6;transition:transform .15s,background .15s}
+.socialLink span{display:inline-block;margin-right:7px;color:#c6e0d5;font-size:17px;vertical-align:middle}
+.socialLink:hover,.socialLink:focus{background:rgba(169,196,182,.28);transform:translateY(-2px);outline:2px solid #e0eee8;outline-offset:2px}
+</style>
+</head>
+<body>
+<section id="intro"><div>
+ <div class="pixel-globe" aria-label="Pixel world"><span>■</span><span>◆</span><span>■</span></div><div class="sub">A LITTLE WORLD MADE WITH CARE</div>
+ <h1>Mimo Us <span style="color:#f4d77a">♡</span></h1>
+ <p class="sub">READY TO EXPLORE?</p>
+ <button class="pixel-btn" id="start">▶ START ADVENTURE</button>
+</div></section>
+<main id="game">
+ <header class="head"><h1>Mimo Us ♡</h1><p>WELCOME TO OUR LITTLE BLOCK WORLD</p></header>
+ <section id="gameMenu" class="panel">
+  <h2>✦ CHOOSE YOUR ADVENTURE ✦</h2>
+  <p>Every game has its own little world. Choose one to begin!</p>
+  <section class="roadmap" aria-label="Adventure game order">
+   <h3>YOUR ADVENTURE ROADMAP</h3>
+   <ol>
+    <li><strong>01 — MYSTERY BALLS</strong><span>Spin the arcade machine and open all five message capsules.</span></li>
+    <li><strong>02 — HIDDEN HEARTS</strong><span>Explore the block world, find five hearts and open the secret gate.</span></li>
+    <li><strong>03 — LOVE CALCULATOR</strong><span>Enter two names and reveal the symbolic Infinity result.</span></li>
+    <li><strong>04 — SECRET GARDEN</strong><span>Unlocked after finding all five hearts. This continues the Hidden Hearts journey.</span></li>
+    <li><strong>05 — FINAL TREASURE</strong><span>Open the envelope and read the final message.</span></li>
+    <li><strong>06 — GRAND ENDING</strong><span>Reach the last page and see the Mimo Us finale.</span></li>
+   </ol>
+   <p class="roadmapNote">Suggested order: follow the numbered path. Secret Garden, Final Treasure and Grand Ending unlock as you progress.</p>
+  </section>
+  <div class="gameCards">
+   <button class="gameCard" data-page="ballsPage"><span class="gameGlyph">◉</span><strong>MYSTERY BALLS</strong><small>Spin the chest and discover five letters</small></button>
+   <button class="gameCard" data-page="heartsPage"><span class="gameGlyph">♥</span><strong>HIDDEN HEARTS</strong><small>Explore the map and find five hearts</small></button>
+   <button class="gameCard" data-page="calcPage"><span class="gameGlyph">∞</span><strong>LOVE CALCULATOR</strong><small>A playful name-score game</small></button>
+  </div>
+ </section>
+ <section id="ballsPage" class="gamePage panel" style="display:none">
+  <div class="pageNav"><button class="backBtn" data-back>← BACK TO GAMES</button><button class="backBtn homeBtn" data-home>▦ HOMEPAGE</button></div>
+  <h2>✦ MYSTERY BALLS ✦</h2>
+  <p>Press spin and watch the capsules swirl inside the arcade machine. One mystery ball will roll out through the slot. Tap it to open your letter!</p>
+  <div class="arcadeWrap">
+   <div class="machine" id="machine">
+    <div class="machineTop">MIMO US • CAPSULE ARCADE</div>
+    <div class="globe"><div class="ballCloud" id="ballCloud">
+     <span class="machineBall">♡</span><span class="machineBall">✦</span><span class="machineBall">♡</span><span class="machineBall">✧</span><span class="machineBall">♥</span>
+    </div></div>
+    <div class="chute"></div>
+    <div class="outputSlot" id="outputSlot"><span style="font-size:10px;color:#573b25;font-weight:bold;letter-spacing:1px">WAITING FOR A BALL</span></div>
+   </div>
+   <p class="arcadeHint">ONE SPIN • ONE MYSTERY CAPSULE • ONE LITTLE MESSAGE</p>
+  </div>
+  <div style="text-align:center"><button class="pixel-btn" id="spin">↻ SPIN THE MACHINE</button></div>
+  <div id="pickArea"></div>
+  <p class="progress" id="chestStatus">The arcade machine is waiting. Press SPIN to begin!</p>
+  <p class="progress" id="letterCount">✉ LETTERS: 0/5</p>
+ </section>
+ <section id="heartsPage" class="gamePage" style="display:none">
+  <div class="pageNav"><button class="backBtn" data-back>← BACK TO GAMES</button><button class="backBtn homeBtn" data-home>▦ HOMEPAGE</button></div>
+  <div class="stats"><span id="heartCount">♥ HEARTS: 0/5</span></div>
+  <div id="screen"><canvas id="world" width="800" height="460" aria-label="Minecraft style hidden hearts exploration world"></canvas></div>
+  <p class="hint">MOVE AROUND THE WORLD with the arrow buttons. Walk close to a glowing heart, then press INTERACT. On a keyboard, WASD or arrow keys also work.</p>
+  <div class="controls">
+   <div class="pad">
+    <button class="up" data-dir="up">▲</button><button class="left" data-dir="left">◀</button>
+    <button class="down" data-dir="down">▼</button><button class="right" data-dir="right">▶</button>
+   </div>
+   <button class="action" id="interact">INTERACT</button>
+  </div>
+  <section class="panel">
+   <h2>✦ THE FIVE HIDDEN HEARTS ✦</h2>
+   <p>Find all five hearts hidden around the map. They will glow when you get close enough.</p>
+   <p class="progress" id="heartHint">Hearts found: 0 / 5</p>
+   <p class="progress" id="secretStatus">A mysterious gate is sleeping somewhere in the forest...</p>
+   <button class="pixel-btn secretUnlock" id="enterSecretGarden">✦ ENTER THE SECRET GARDEN ✦</button>
+  </section>
+ </section>
+ <section id="calcPage" class="gamePage panel" style="display:none">
+  <div class="pageNav"><button class="backBtn" data-back>← BACK TO GAMES</button><button class="backBtn homeBtn" data-home>▦ HOMEPAGE</button></div>
+  <h2>✦ MIMO US LOVE CALCULATOR ✦</h2>
+  <p>Enter two names to reveal a playful Mimo Us score. This is just a little game, not a real measure of anyone's feelings.</p>
+  <div style="display:grid;grid-template-columns:1fr 1fr;gap:8px">
+   <label style="font-size:11px;font-weight:bold">NAME ONE<input id="nameOne" maxlength="24" placeholder="First name" style="display:block;width:100%;padding:10px;margin-top:5px;border:3px solid #536f43;font:inherit"></label>
+   <label style="font-size:11px;font-weight:bold">NAME TWO<input id="nameTwo" maxlength="24" placeholder="Second name" style="display:block;width:100%;padding:10px;margin-top:5px;border:3px solid #536f43;font:inherit"></label>
+  </div>
+  <div style="text-align:center"><button class="pixel-btn" id="calculate">♡ CALCULATE</button></div>
+  <p class="progress" id="calcResult" aria-live="polite">A little surprise is waiting...</p>
+  <div class="infinityStage" id="infinityStage" aria-live="polite">
+   <div class="infinityKicker">MIMO US • FINAL RESULT</div>
+   <div class="infinityWord">INFINITY</div>
+   <div class="infinitySymbol">∞</div>
+   <div class="infinityBond">EVERY BOND IS <em>MORE THAN A NUMBER.</em></div>
+   <div class="infinityEquation">1.96386492739277 + 6483837.7383<br>THE NUMBERS BEGIN THE GAME — THE MESSAGE GOES BEYOND THEM.</div>
+   <div class="infinityNote">A symbolic, just-for-fun result. The ordinary sum is finite; INFINITY represents a bond that cannot be measured by this calculator.</div>
+  </div>
+ </section>
+
+ <section id="secretGardenPage" class="gamePage panel" style="display:none">
+  <div class="pageNav"><button class="backBtn" data-back>← BACK TO GAMES</button><button class="backBtn homeBtn" data-home>▦ HOMEPAGE</button></div>
+  <div class="secretHero">
+   <div class="big pixelGardenGlyph">✿ ▦ ✿</div>
+   <h2>THE SECRET GARDEN</h2>
+   <p>THIS IS THE NEXT CHAPTER OF YOUR JOURNEY.</p>
+   <p>This garden has opened because all five hidden hearts have been found. It is a continuation of the five-heart adventure — every heart brought you one step closer to this quiet little place.</p>
+   <div class="big pixelGardenGlyph">♥ ✧ ♥</div>
+  </div>
+  <div class="gardenScene">
+   <div>
+    <div class="gardenIcons">▦ ✿ ▦ ✿ ▦</div>
+    <div class="gardenCaption">A LITTLE GARDEN BEYOND THE FIVE HEARTS</div>
+    <div class="gardenIcons">✧ ♥ ✧</div>
+   </div>
+  </div>
+  <p class="hint">You found the five hearts. Now, follow the path to the final treasure.</p>
+  <div style="text-align:center"><button class="pixel-btn" data-next="finalTreasurePage">CONTINUE TO THE FINAL TREASURE →</button></div>
+ </section>
+
+ <section id="finalTreasurePage" class="gamePage panel" style="display:none">
+  <div class="pageNav"><button class="backBtn" data-back>← BACK TO GAMES</button><button class="backBtn homeBtn" data-home>▦ HOMEPAGE</button></div>
+  <div class="secretHero" style="background:linear-gradient(145deg,#614b35,#9b7547)">
+   <div class="big pixelGardenGlyph">▤ ✉</div>
+   <h2>THE FINAL TREASURE</h2>
+   <p>A little envelope has been waiting at the end of this adventure. Tap it to tear it open and reveal the final message.</p>
+  </div>
+  <div class="envelopeStage">
+   <button class="envelope" id="tearEnvelope" aria-label="Tear open the final envelope">
+    <span class="envelopeTear">TAP TO TEAR OPEN</span>
+    <span class="envelopeSeal">♡</span>
+   </button>
+  </div>
+  <article class="treasureLetter" id="treasureLetter">
+   <div class="sub" style="color:#82633d">A MESSAGE AT THE END OF THE JOURNEY</div>
+   <h3>One Last Little Note</h3>
+   <p>Some things are not measured by how far we travel, how many things we collect, or how many pages we turn. What makes a journey special is the meaning we find along the way.</p>
+   <p>Thank you for exploring this little world, finding every heart, and reaching the final treasure. May you always carry kindness, courage, gratitude, hope, and the willingness to grow.</p>
+   <p><strong>THE END OF THIS ADVENTURE IS THE BEGINNING OF A MEMORY. ♡</strong></p>
+   <div class="translation">
+    <strong>Terjemahan Bahasa Melayu</strong>
+    <p>Ada perkara yang tidak diukur melalui sejauh mana perjalanan kita, berapa banyak benda yang dikumpulkan atau berapa banyak halaman yang dibuka. Sesuatu perjalanan menjadi istimewa kerana makna yang kita temui sepanjang melaluinya.</p>
+    <p>Terima kasih kerana meneroka dunia kecil ini, menemukan setiap hati dan tiba di harta terakhir. Semoga anda sentiasa membawa kebaikan, keberanian, kesyukuran, harapan dan kesungguhan untuk terus berkembang.</p>
+    <p><strong>AKHIR PERJALANAN INI ADALAH PERMULAAN SEBUAH KENANGAN. ♡</strong></p>
+   </div>
+  </article>
+  <div id="toGrandEnding" style="display:none;text-align:center"><button class="pixel-btn" data-next="grandEndingPage">UNLOCK THE GRAND ENDING ✦</button></div>
+ </section>
+
+ <section id="grandEndingPage" class="gamePage panel" style="display:none">
+  <div class="grandStage">
+   <div class="loveBalloons" aria-hidden="true">
+    <span class="loveBalloon">♥</span><span class="loveBalloon">♥</span><span class="loveBalloon">♥</span><span class="loveBalloon">♥</span><span class="loveBalloon">♥</span>
+   </div>
+   <div class="grandTitle">MIMO US ♡</div>
+   <div class="grandHeart">♥</div>
+   <div class="grandSub">A LITTLE WORLD. A THOUSAND LITTLE MEMORIES.</div>
+   <p class="grandSub">THANK YOU FOR BEING PART OF THIS ADVENTURE.</p>
+   <div class="grandSub" style="margin-top:28px;color:#ffe9a3;font-weight:bold;letter-spacing:3px">BY SUHADAH</div>
+  </div>
+  <p class="hint">THE END ✦</p>
+  <div class="socialEnd" aria-label="Social media links">
+   <div class="socialTitle">FIND US HERE</div>
+   <a class="socialLink" href="https://www.instagram.com/lrns.__/" target="_blank" rel="noopener noreferrer"><span aria-hidden="true">◎</span> INSTAGRAM · @lrns.__</a>
+   <a class="socialLink" href="https://www.tiktok.com/@nrulsuhdhh" target="_blank" rel="noopener noreferrer"><span aria-hidden="true">♪</span> TIKTOK · @nrulsuhdhh</a>
+  </div>
+  <div class="homeEnd"><button class="pixel-btn" data-home>▦ RETURN TO HOMEPAGE</button></div>
+ </section>
+
+ <footer>BY SUHADAH</footer>
+</main>
+
+<div id="aicuDock" aria-live="polite">
+ <button id="aicuToggle" type="button" aria-expanded="false"><span class="aicuMark">A</span><span>AICU HELP</span></button>
+ <section id="aicuPanel" aria-label="AICU game assistant" hidden>
+  <header class="aicuHead"><strong>AICU</strong><span>GAME ASSISTANT</span><button id="aicuClose" type="button" aria-label="Close AICU">×</button></header>
+  <div id="aicuChat" class="aicuChat">
+   <p class="aicuBot"><strong>AICU:</strong> Hello! I can explain the rules and guide you through this Mimo Us game. What would you like help with?</p>
+  </div>
+  <form id="aicuForm" class="aicuForm">
+   <input id="aicuQuestion" maxlength="180" autocomplete="off" placeholder="Ask AICU about this game..." aria-label="Ask AICU a question">
+   <button type="submit">SEND</button>
+  </form>
+  <p class="aicuFoot">BUILT-IN GAME GUIDE • WORKS OFFLINE</p>
+ </section>
+</div>
+
+<div id="modal"><article class="letter">
+ <div class="sub" style="color:#536f43">A LITTLE MESSAGE FROM THE PIXEL WORLD</div>
+ <h3 id="modalTitle"></h3><p id="modalEn"></p>
+ <div class="translation"><strong>Terjemahan Bahasa Melayu</strong><p id="modalMs"></p></div>
+ <button class="close" id="close">CLOSE ✕</button>
+</article></div>
+<script>
+const canvas=document.getElementById('world'),ctx=canvas.getContext('2d');
+const tile=40, mapW=20,mapH=11;
+const player={x:400,y:260,dir:0};
+const keys={};
+let heartsFound=new Set(),lettersFound=new Set(),nearby=null,gateOpen=false,spinning=false;
+const hearts=[
+ {x:120,y:100,title:"A Heart of Kindness",en:"A little kindness can make a big difference. Keep choosing patience, honesty, and care in the small moments.",ms:"Sedikit kebaikan mampu membawa perubahan besar. Terus pilih kesabaran, kejujuran dan sikap mengambil berat dalam perkara kecil."},
+ {x:680,y:100,title:"A Heart of Courage",en:"Courage does not mean knowing everything. It means being willing to learn, try again, and take the next small step.",ms:"Keberanian bukan bermaksud mengetahui segala-galanya. Keberanian ialah kesediaan untuk belajar, mencuba lagi dan mengambil langkah kecil yang seterusnya."},
+ {x:200,y:360,title:"A Heart of Gratitude",en:"Notice the good things around you, even the simple ones. Gratitude helps ordinary moments become meaningful.",ms:"Hargai perkara baik di sekeliling, walaupun yang sederhana. Rasa syukur menjadikan detik biasa lebih bermakna."},
+ {x:600,y:350,title:"A Heart of Hope",en:"Keep making room for hope. Your story is still unfolding, and there are many good things left to discover.",ms:"Terus berikan ruang kepada harapan. Kisah hidup masih berjalan dan banyak perkara baik yang belum ditemui."},
+ {x:400,y:70,title:"A Heart of Growth",en:"You do not have to be perfect to make progress. Keep learning, stay true to your values, and celebrate each step forward.",ms:"Kamu tidak perlu menjadi sempurna untuk berkembang. Terus belajar, pegang nilai yang baik dan hargai setiap langkah ke hadapan."}
+];
+const letters=[
+ {title:"A Little Reminder",en:"Dear you, never forget that your effort matters. Even the smallest steps can take you somewhere wonderful. Keep learning, keep growing, and be proud of how far you have come.",ms:"Jangan pernah lupa bahawa setiap usaha itu bermakna. Langkah yang kecil juga boleh membawa kita ke tempat yang indah. Terus belajar, terus berkembang dan hargai sejauh mana kamu telah melangkah."},
+ {title:"Your Kindness",en:"Kindness is a quiet kind of magic. The way you listen, help, and care can make an ordinary day feel a little brighter. Never think that goodness goes unnoticed.",ms:"Kebaikan ialah sejenis keajaiban yang sederhana. Cara kamu mendengar, membantu dan mengambil berat mampu menjadikan hari biasa terasa lebih cerah. Jangan fikir kebaikan itu tidak dihargai."},
+ {title:"Keep Your Wonder",en:"May you always make room for curiosity. Ask questions, discover new things, and let your world become bigger with every lesson and every experience.",ms:"Semoga kamu sentiasa memberi ruang kepada rasa ingin tahu. Bertanyalah, temui perkara baharu dan biarkan dunia kamu menjadi lebih luas melalui setiap ilmu dan pengalaman."},
+ {title:"A Brighter Day",en:"Some days are easy, and some ask for extra patience. Whatever kind of day it is, remember to pause, breathe, and give yourself time. Tomorrow brings another chance to begin.",ms:"Ada hari yang mudah dan ada hari yang memerlukan lebih banyak kesabaran. Apa pun keadaan hari itu, ingatlah untuk berhenti seketika, bertenang dan beri diri sendiri masa. Esok membawa peluang baharu untuk bermula."},
+ {title:"One More Thing",en:"Thank you for being part of this little adventure. May your days be filled with sincere smiles, meaningful moments, and beautiful things worth remembering.",ms:"Terima kasih kerana menjadi sebahagian daripada pengembaraan kecil ini. Semoga hari-hari kamu dipenuhi senyuman yang tulus, saat yang bermakna dan perkara indah yang wajar dikenang."}
+];
+const chest={x:400,y:250};
+const gate={x:740,y:250};
+function rect(x,y,w,h,c){ctx.fillStyle=c;ctx.fillRect(x,y,w,h)}
+function drawTree(x,y){rect(x-9,y-2,18,40,'#536d75');rect(x-30,y-35,60,42,'#5a806f');rect(x-22,y-48,44,18,'#739987');rect(x-25,y-28,50,8,'#3e665a')}
+function draw(){
+ rect(0,0,800,460,'#91b8c7');
+ // checkerboard grass and paths
+ for(let y=0;y<460;y+=40)for(let x=0;x<800;x+=40)rect(x,y,40,40,((x/40+y/40)%2?'#668d7a':'#739886'));
+ for(let x=40;x<760;x+=40)rect(x,220,40,40,'#a6b7ae');
+ for(let y=80;y<400;y+=40)rect(380,y,40,40,'#a6b7ae');
+ // distant pond
+ rect(60,250,100,65,'#5f93a5');rect(60,250,100,8,'#b4d4d5');
+ drawTree(80,90);drawTree(720,90);drawTree(100,390);drawTree(700,390);drawTree(300,70);drawTree(520,390);
+ // little house
+ rect(340,150,120,75,'#788e91');rect(330,140,140,18,'#536a70');rect(360,180,28,45,'#405a61');rect(410,170,24,24,'#b8d7dc');
+ // chest
+ rect(chest.x-22,chest.y-15,44,30,'#536d75');rect(chest.x-22,chest.y-15,44,9,'#789397');rect(chest.x-3,chest.y-8,7,12,'#c5d9d0');
+ // gate
+ rect(gate.x-25,gate.y-42,10,85,'#536d75');rect(gate.x+15,gate.y-42,10,85,'#536d75');rect(gate.x-25,gate.y-42,50,10,'#536d75');
+ if(gateOpen){rect(gate.x-13,gate.y-30,26,65,'#c3d9ce');ctx.fillStyle='#e3eee9';ctx.font='24px monospace';ctx.fillText('✦',gate.x-9,gate.y+8)}
+ else{rect(gate.x-13,gate.y-30,26,65,'#435f5d');ctx.fillStyle='#c8d8d1';ctx.font='10px monospace';ctx.fillText('LOCKED',gate.x-18,gate.y+5)}
+ // hearts
+ hearts.forEach((h,i)=>{if(!heartsFound.has(i)){let near=Math.hypot(player.x-h.x,player.y-h.y)<85;ctx.font='30px serif';ctx.fillStyle=near?'#e0efeb':'#6e9b8b';ctx.shadowColor='#fff';ctx.shadowBlur=near?18:4;ctx.fillText('♥',h.x-13,h.y+10);ctx.shadowBlur=0}});
+ // player
+ rect(player.x-10,player.y-18,20,25,'#527f98');rect(player.x-9,player.y-32,18,16,'#b9c8c1');rect(player.x-9,player.y-36,18,7,'#53636a');rect(player.x-8,player.y+7,7,9,'#3c4c53');rect(player.x+2,player.y+7,7,9,'#3c4c53');
+ // small map labels
+ ctx.fillStyle='#294b4a';ctx.font='bold 11px monospace';ctx.fillText('MIMO VILLAGE',330,130);ctx.fillText('SECRET GATE',700,190);
+}
+function detect(){
+ nearby=null;
+ if(Math.hypot(player.x-chest.x,player.y-chest.y)<65)nearby='chest';
+ else if(!gateOpen&&Math.hypot(player.x-gate.x,player.y-gate.y)<65)nearby='gate';
+ else hearts.forEach((h,i)=>{if(!heartsFound.has(i)&&Math.hypot(player.x-h.x,player.y-h.y)<48)nearby='heart'+i});
+ document.getElementById('interact').textContent=nearby?'INTERACT ✓':'INTERACT';
+
+}
+function move(dx,dy){player.x=Math.max(22,Math.min(778,player.x+dx));player.y=Math.max(45,Math.min(435,player.y+dy));detect();draw()}
+function loop(){if(document.getElementById('heartsPage').style.display!=='none'){let dx=0,dy=0;if(keys.ArrowLeft||keys.a)dx=-3;if(keys.ArrowRight||keys.d)dx=3;if(keys.ArrowUp||keys.w)dy=-3;if(keys.ArrowDown||keys.s)dy=3;if(dx||dy)move(dx,dy)}requestAnimationFrame(loop)}
+document.addEventListener('keydown',e=>{keys[e.key]=true;if(['ArrowUp','ArrowDown','ArrowLeft','ArrowRight',' '].includes(e.key))e.preventDefault()});
+document.addEventListener('keyup',e=>keys[e.key]=false);
+document.querySelectorAll('[data-dir]').forEach(b=>{
+ const d=b.dataset.dir,delta={up:[0,-8],down:[0,8],left:[-8,0],right:[8,0]}[d];
+ b.addEventListener('pointerdown',e=>{e.preventDefault();move(...delta)});
+});
+document.getElementById('interact').onclick=()=>{
+ if(nearby&&nearby.startsWith('heart')){let i=Number(nearby.slice(5));heartsFound.add(i);updateHearts();showMessage(hearts[i]);nearby=null;detect();draw()}
+ else if(nearby==='gate'){if(heartsFound.size===5){gateOpen=true;document.getElementById('secretStatus').textContent='THE SECRET GATE IS OPEN! Your secret garden awaits.';document.getElementById('enterSecretGarden').classList.add('show');showMessage({title:'The Secret Gate Is Open!',en:'You found all five hidden hearts. A new page is now unlocked: the Secret Garden, the next chapter of your five-heart adventure.',ms:'Anda telah menemui kelima-lima hati tersembunyi. Satu halaman baharu kini terbuka: Secret Garden, sambungan kepada pengembaraan lima hati anda.'});draw()}else{showMessage({title:'A Sleeping Gate',en:'The gate is still locked. There are five hidden hearts somewhere in this world. Find them all to unlock the secret.',ms:'Pintu ini masih berkunci. Ada lima hati tersembunyi di dunia ini. Cari semuanya untuk membuka rahsia.'})}}
+ else {document.getElementById('secretStatus').textContent='Explore the map and look for glowing hearts!'}
+};
+function updateHearts(){document.getElementById('heartCount').textContent=`♥ HEARTS: ${heartsFound.size}/5`;document.getElementById('heartHint').textContent=`Hearts found: ${heartsFound.size} / 5`;if(heartsFound.size===5)document.getElementById('secretStatus').textContent='All five hearts found! The secret gate is ready to unlock.'}
+function showMessage(m){document.getElementById('modalTitle').textContent=m.title;document.getElementById('modalEn').textContent=m.en;document.getElementById('modalMs').textContent=m.ms;document.getElementById('modal').style.display='grid'}
+document.getElementById('close').onclick=()=>document.getElementById('modal').style.display='none';
+document.getElementById('modal').addEventListener('click',e=>{if(e.target.id==='modal')e.currentTarget.style.display='none'});
+let pendingLetter=null;
+function resetArcadeBall(){
+ const slot=document.getElementById('outputSlot');
+ slot.innerHTML='<span style="font-size:10px;color:#573b25;font-weight:bold;letter-spacing:1px">WAITING FOR A BALL</span>';
+ pendingLetter=null;
+}
+document.getElementById('spin').onclick=()=>{
+ if(spinning||pendingLetter!==null)return;
+ const available=letters.map((_,i)=>i).filter(i=>!lettersFound.has(i));
+ const status=document.getElementById('chestStatus');
+ if(!available.length){status.textContent='All five letters discovered!';return}
+ spinning=true;
+ const machine=document.getElementById('machine');
+ const spinButton=document.getElementById('spin');
+ machine.classList.add('spinning');spinButton.disabled=true;spinButton.style.opacity='.5';
+ status.textContent='The capsules are swirling around...';
+ resetArcadeBall();
+ const chosen=available[Math.floor(Math.random()*available.length)];
+ setTimeout(()=>{
+  machine.classList.remove('spinning');spinning=false;
+  pendingLetter=chosen;
+  const slot=document.getElementById('outputSlot');
+  slot.innerHTML='';
+  const ball=document.createElement('button');
+  ball.className='outputBall';ball.type='button';ball.textContent='♡';
+  ball.setAttribute('aria-label','Tap to open the mystery capsule');
+  ball.onclick=()=>{
+   if(pendingLetter===null)return;
+   const index=pendingLetter;pendingLetter=null;
+   lettersFound.add(index);
+   document.getElementById('letterCount').textContent=`✉ LETTERS: ${lettersFound.size}/5`;
+   slot.innerHTML='<span style="font-size:10px;color:#573b25;font-weight:bold">CAPSULE OPENED ✦</span>';
+   status.textContent=lettersFound.size===5?'All five letters discovered!':'A new letter discovered! Press SPIN for another capsule.';
+   spinButton.disabled=false;spinButton.style.opacity='1';
+   showMessage(letters[index]);
+  };
+  slot.appendChild(ball);
+  status.textContent='A mystery capsule has dropped! Tap the ball to open it.';
+ },1900);
+};
+
+
+
+let aicuCurrentPage='gameMenu';
+function setAicuPage(id){
+ aicuCurrentPage=id;
+ const dock=document.getElementById('aicuDock');
+ dock.style.display='block';
+}
+function aicuReply(question){
+ const q=question.toLowerCase();
+ const page=aicuCurrentPage;
+ if(/home|homepage|menu|mula/.test(q)) return 'Use the HOMEPAGE button to return to the game menu. From there, choose any game card.';
+ if(page==='ballsPage'){
+  if(/spin|pusing|mula|start/.test(q)) return 'Press SPIN THE MACHINE. Wait for one capsule to drop through the slot, then tap the capsule to open its message. Repeat until all five letters are found.';
+  if(/bola|capsule|ball|surat|letter|mesej|message/.test(q)) return 'Each capsule contains one of five messages. Open the dropped capsule to read the English message and its Bahasa Melayu translation.';
+  if(/berapa|five|lima|habis|complete|selesai/.test(q)) return 'Find all five letters. The counter under the machine shows your progress.';
+  return 'Mystery Balls: press SPIN, wait for a capsule to drop, then tap it to open the message. Find all five.';
+ }
+ if(page==='heartsPage'){
+  if(/gerak|move|jalan|arah|control|kawal/.test(q)) return 'Move with the arrow buttons on screen, or use WASD / keyboard arrow keys. Walk near a glowing heart and press INTERACT.';
+  if(/heart|hati|lima|five|jumpa|cari/.test(q)) return 'Explore the map and look for five glowing hearts. Get close to each one and press INTERACT to collect it.';
+  if(/gate|pintu|secret|unlock|buka/.test(q)) return 'After collecting all five hearts, find the gate at the right side of the map and press INTERACT. The Secret Garden button will then appear.';
+  return 'Hidden Hearts: explore with the arrow controls, collect five glowing hearts using INTERACT, then open the gate.';
+ }
+ if(page==='calcPage'){
+  if(/nama|name|input|isi|calculate|kira/.test(q)) return 'Enter a name in both boxes, then press CALCULATE. The result is a playful symbolic INFINITY message, not a real measurement.';
+  if(/infinity|infiniti|number|nombor|score|markah/.test(q)) return 'INFINITY is a symbolic result for this game. The calculator explains that every bond is more than a number.';
+  return 'Love Calculator: enter two names and press CALCULATE to reveal the symbolic result.';
+ }
+ if(page==='secretGardenPage') return 'The Secret Garden is the next page after the five-heart quest. It is unlocked once all five hearts have been found and the gate has been opened.';
+ if(page==='finalTreasurePage') return 'Tap the envelope in the middle of the page. It opens to reveal the final message. Then use the button below the letter to continue.';
+ if(page==='grandEndingPage') return 'This is the final page of Mimo Us. The blue-green pixel balloons rise behind the title. Press HOMEPAGE to return to the game menu.';
+ return 'Choose a game from the roadmap. Mystery Balls and Hidden Hearts are adventures; Love Calculator is a playful name game. AICU can explain each one while it is open.';
+}
+document.getElementById('aicuToggle').onclick=()=>{
+ const p=document.getElementById('aicuPanel');
+ p.hidden=!p.hidden;
+ document.getElementById('aicuToggle').setAttribute('aria-expanded',String(!p.hidden));
+};
+document.getElementById('aicuClose').onclick=()=>{
+ document.getElementById('aicuPanel').hidden=true;
+ document.getElementById('aicuToggle').setAttribute('aria-expanded','false');
+};
+document.getElementById('aicuForm').onsubmit=e=>{
+ e.preventDefault();
+ const input=document.getElementById('aicuQuestion');
+ const q=input.value.trim();
+ if(!q)return;
+ const chat=document.getElementById('aicuChat');
+ const user=document.createElement('p');user.className='aicuUser';user.textContent='YOU: '+q;
+ const bot=document.createElement('p');bot.className='aicuBot';
+ const strong=document.createElement('strong');strong.textContent='AICU:';
+ bot.append(strong,document.createTextNode(' '+aicuReply(q)));
+ chat.append(user,bot);chat.scrollTop=chat.scrollHeight;input.value='';
+};
+
+function showPage(id){
+ if(['secretGardenPage','finalTreasurePage'].includes(id)&&!gateOpen){return}
+ if(id==='grandEndingPage'&&!treasureOpened){return}
+ document.querySelectorAll('.gamePage').forEach(p=>p.style.display='none');
+ document.getElementById('gameMenu').style.display='none';
+ document.getElementById(id).style.display='block';
+ setAicuPage(id);
+ if(id==='heartsPage'){draw();detect()}
+ window.scrollTo({top:0,behavior:'smooth'});
+}
+document.querySelectorAll('[data-page]').forEach(b=>b.onclick=()=>showPage(b.dataset.page));
+document.querySelectorAll('[data-back]').forEach(b=>b.onclick=()=>{
+ document.querySelectorAll('.gamePage').forEach(p=>p.style.display='none');
+ document.getElementById('gameMenu').style.display='block';
+ setAicuPage('gameMenu');
+ window.scrollTo({top:0,behavior:'smooth'});
+});
+document.querySelectorAll('[data-home]').forEach(b=>b.onclick=()=>{
+ document.querySelectorAll('.gamePage').forEach(p=>p.style.display='none');
+ document.getElementById('gameMenu').style.display='block';
+ setAicuPage('gameMenu');
+ window.scrollTo({top:0,behavior:'smooth'});
+});
+document.getElementById('enterSecretGarden').onclick=()=>showPage('secretGardenPage');
+document.querySelectorAll('[data-next]').forEach(b=>b.addEventListener('click',()=>showPage(b.dataset.next)));
+let treasureOpened=false;
+document.getElementById('tearEnvelope').onclick=()=>{
+ if(treasureOpened)return;
+ treasureOpened=true;
+ document.getElementById('tearEnvelope').classList.add('opened');
+ document.getElementById('treasureLetter').classList.add('show');
+ document.querySelector('.envelopeTear').textContent='ENVELOPE OPENED ✦';
+ document.getElementById('toGrandEnding').style.display='block';
+};
+
+document.getElementById('calculate').onclick=()=>{
+  const a=document.getElementById('nameOne').value.trim();
+  const b=document.getElementById('nameTwo').value.trim();
+  const result=document.getElementById('calcResult');
+  const stage=document.getElementById('infinityStage');
+  if(!a||!b){
+    result.textContent='Please enter both names first.';
+    stage.classList.remove('show');
+    return;
+  }
+  result.textContent=`${a} + ${b} — your Mimo Us result is ready.`;
+  stage.classList.remove('show');
+  void stage.offsetWidth;
+  stage.classList.add('show');
+};
+
+document.getElementById('start').onclick=()=>{let intro=document.getElementById('intro');intro.classList.add('color');setTimeout(()=>{intro.style.display='none';document.getElementById('game').style.display='block';document.getElementById('gameMenu').style.display='block';setAicuPage('gameMenu');window.scrollTo(0,0);loop()},950)};
+</script>
+</body></html>
